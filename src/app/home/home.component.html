@@ -1,0 +1,114 @@
+<mat-sidenav-container class="w3-row w3-sand" style="min-height:100vh;width:100%">
+    <mat-sidenav mode="over" #sidenav class="w3-row">
+      <div class="w3-row w3-padding meraki-font-s5 w3-light-blue">Menu de Administrador</div>
+      <!--button mat-button class="w3-block w3-left-align" routerLink="dashboard"><mat-icon>dashboard</mat-icon> Dashboard</button><br-->
+      <!-- <button mat-button class="w3-block w3-left-align" (click)="sidenav.toggle()" routerLink="almacenes"><mat-icon>location_on</mat-icon> Mapa</button><br> -->
+      <button mat-button class="w3-block w3-left-align" (click)="sidenav.toggle()" routerLink="rastrear"><mat-icon>track_changes</mat-icon> Rastrear</button><br>
+      <button mat-button class="w3-block w3-left-align" (click)="sidenav.toggle()" routerLink="pedidos"><mat-icon>book</mat-icon> Pedidos</button><br>
+      <button mat-button class="w3-block w3-left-align" (click)="sidenav.toggle()" routerLink="pasajeros"><mat-icon>account_box</mat-icon> Pasajeros</button><br>
+      <button mat-button class="w3-block w3-left-align" (click)="sidenav.toggle()" routerLink="conductores"><mat-icon>drive_eta</mat-icon> Conductores</button><br>
+      <button mat-button class="w3-block w3-left-align" (click)="sidenav.toggle()" routerLink="empresas"><mat-icon>business</mat-icon> Empresas</button><br>
+      <button mat-button class="w3-block w3-left-align" (click)="sidenav.toggle()" routerLink="pagos"><mat-icon>payment</mat-icon> Pagos</button><br>
+      <button mat-button class="w3-block w3-left-align" (click)="sidenav.toggle()" routerLink="reportes"><mat-icon>assignment</mat-icon> Reportes</button><br>
+      <button mat-button class="w3-block w3-left-align" (click)="sidenav.toggle()" routerLink="anuncios"><mat-icon>announcement</mat-icon> Anuncios</button><br>
+      <button mat-button class="w3-block w3-left-align" (click)="sidenav.toggle()" routerLink="login"><mat-icon>exit_to_app</mat-icon> Salir</button><br>
+    </mat-sidenav>
+  
+    <div class="w3-container w3-white w3-card-4 w3-animate-top"
+         style="margin-left:2vw;margin-right:2vw;border-radius:0px 0px 10px 10px">
+      <div class="row middle-xs w3-bar" style="padding:12px 24px">
+          <button type="button" mat-button (click)="sidenav.open()">
+              <mat-icon>menu</mat-icon><span class="w3-xlarge meraki-font-s5"> Panel</span>
+          </button>
+      </div>
+    </div>
+    <br>
+    <!--div class="w3-container" *ngFor="let user of users | async">
+      <h3>{{ user.last_location | json }}</h3>
+    </div-->
+    <div class="w3-row-padding w3-padding-small" style="margin-left:23px; margin-right:10px">
+        <div class="w3-col s12 m0 l0"><p></p></div>
+        <div class="w3-col s12 m6 l5" style="height: 84vh">
+          <router-outlet></router-outlet>
+        </div>
+        <div class="w3-col s12 m6 l7" >
+          <div id="map" style="width:100%;height:100%"></div>
+          <agm-map class="meraki-fill w3-card-2" 
+            [latitude]="centerLatLng.latitude"
+            [longitude]="centerLatLng.longitude"
+            [zoom]="zoom"
+            [styles]="style">
+
+            <agm-directions [origin]="centerLatLng" [destination]="destination" ></agm-directions>
+
+            <div *ngFor="let rider of riders | async">
+              <agm-circle 
+                [latitude]="rider.lastLocation._lat"
+                [longitude]="rider.lastLocation._long"
+                [radius]="rider.status === 'panic'?100:0"
+                [fillColor]="rider.status === 'panic'?'red':'white'"
+                [fillOpacity]="0.5"
+                [circleDraggable]="false"
+                [editable]="false">
+              </agm-circle>
+
+              <agm-marker 
+                [latitude]="rider.lastLocation._lat"
+                [longitude]="rider.lastLocation._long"
+                (markerClick)="changeDriver(rider.lastLocation._lat,rider.lastLocation._long)">
+                <agm-info-window>
+                  <div class="w3-row-padding" style="width:250px">
+                      <h4 class="w3-text-green"><span><img class="w3-circle" [src]="rider.image" style="width:20%;"></span> Pasajero <span>({{rider.status}})</span></h4>
+                      <p class="w3-text-black"><strong>{{ rider.name }}</strong></p>
+                      <button type="button" mat-button>
+                          <mat-icon>star_rate</mat-icon><span class="meraki-font-s5">{{ rider.rating }}</span>
+                      </button>
+                      <button type="button" mat-button>
+                          <mat-icon>phone</mat-icon><span class="meraki-font-s5">{{ rider.mobile }}</span>
+                      </button>
+                  </div>
+                </agm-info-window>
+              </agm-marker>
+            </div>
+
+            <div *ngFor="let driver of drivers">
+
+              <agm-circle 
+                [latitude]="driver['lastLocation']['_lat']"
+                [longitude]="driver['lastLocation']['_long']"
+                [radius]="driverTracked.lastname === driver['lastname']?100:0"
+                [fillColor]="'teal'"
+                [fillOpacity]="0.3"
+                [circleDraggable]="false"
+                [editable]="false">
+              </agm-circle>
+
+              <agm-marker
+                iconUrl="../../assets/img/taxi.png"
+                [latitude]="driver['lastLocation']['_lat']"
+                [longitude]="driver['lastLocation']['_long']">
+                <agm-info-window>
+                    <div class="w3-row-padding" style="width:270px">
+                        <h4 class="w3-text-green"><span><img class="w3-circle" [src]="driver.image" style="width:20%;"></span> Conductor <span>({{driver['status']}})</span></h4>
+                        <p class="w3-text-black"><strong>{{ driver['name'] }},{{ driver['lastname'] }}</strong></p>
+                        <button type="button" mat-button>
+                            <mat-icon>star_rate</mat-icon><span class="meraki-font-s5">{{ driver['rating'] }}</span>
+                        </button>
+                        <button type="button" mat-button>
+                            <mat-icon>phone</mat-icon><span class="meraki-font-s5">{{ driver['mobile'] }}</span>
+                        </button>
+                    </div>
+                </agm-info-window>
+              </agm-marker>
+            </div>
+
+          </agm-map>
+        </div>
+        <div class="w3-col s12 m0 l0"><p></p></div>
+    </div>
+    <br>
+  
+    
+    
+    
+  </mat-sidenav-container>
